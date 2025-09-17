@@ -1,6 +1,12 @@
-FROM jenkins/jenkins:2.73.3
-MAINTAINER Oleg Nenashev <o.v.nenashev@gmail.com>
-LABEL Description="This demo shows how to setup Jenkins Config-as-Code with Docker, Pipeline, and Groovy Hook Scripts" Vendor="Oleg Nenashev" Version="0.2"
+ARG JENKINS_VERSION=2.303.1
+FROM jenkins/jenkins:$JENKINS_VERSION
+LABEL Maintainer="Oleg Nenashev <o.v.nenashev@gmail.com>"
+LABEL Description="This demo shows how to setup Jenkins Config-as-Code with Docker, Pipeline, and Groovy Hook Scripts"
+
+USER root
+RUN apt-get update && apt-get install -y wget
+
+USER jenkins
 
 ENV JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
@@ -28,4 +34,6 @@ VOLUME /var/jenkins_home/pipeline-libs
 EXPOSE 5005
 
 COPY jenkins2.sh /usr/local/bin/jenkins2.sh
-ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins2.sh"]
+ENV CASC_JENKINS_CONFIG=/var/jenkins_home/jenkins.yaml
+COPY jenkins.yaml /var/jenkins_home/jenkins.yaml
+ENTRYPOINT ["tini", "--", "/usr/local/bin/jenkins2.sh"]
